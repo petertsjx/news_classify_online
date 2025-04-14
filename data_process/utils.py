@@ -2,22 +2,41 @@ import pandas as pd
 import re
 import emoji
 from zhon.hanzi import punctuation
+import stanza
+import re
+from collections import defaultdict
+from ner_model import CustomEntityRecognizer
+
+#custom_recognizer = CustomEntityRecognizer()
 
 def remove_emoji_simple(text):
     if pd.isna(text):
         return ''
     return emoji.replace_emoji(str(text), '')
-
+'''
+def filter_meaningless(text):
+    sample_news_entities=custom_recognizer.prediction(text)
+    if len(sample_news_entities)>=2:
+        return True
+    else:
+        return False
+'''
 
 def extract_title(df):
     # 清洗title和description
     df['clean_title'] = df['title'].apply(clean_text)
     df['clean_description'] = df['description'].apply(clean_text)
+
+    #过滤无意义新闻
+
     # 合并文本并去重
     df['merged_text'] = df.apply(
-        lambda x: ' '.join(set(filter(None, [x['clean_title'],x['clean_description']]))),
+        lambda x: ' '.join(set(filter(None, [x['clean_title']]))),
         axis=1
     )
+
+    #过滤无意义新闻
+    #df['merged_text'] = df[df['merged_text'].apply(filter_meaningless)]
 
     # 删除字数小于2的行
     df = df[df['merged_text'].str.len() > 2]

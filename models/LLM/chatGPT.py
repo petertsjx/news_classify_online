@@ -22,7 +22,8 @@ class NewsClassifier:
             6: "军事与安全 包括： 国防政策、军事演习与行动、地区安全局势（如南海、台海）、军备发展、恐怖主义与反恐、国家安全（间谍活动、网络安全）",
             7: "灾难与事故 包括： 全球自然灾害（地震、火灾、洪水、滑坡等）、重大事故（交通、工业、建筑坍塌等）和救援行动",
             8: "文化与人物 包括： 文化艺术动态、娱乐媒体与传播、体育赛事（如亚冬会）、知名人物活动与逝世、中国历史回顾与纪念。",
-            9: "加密货币与web3 包括： 比特币、以太坊、币安、炒币、币圈诈骗。"
+            9: "加密货币与web3 包括： 比特币、以太坊、币安、炒币、币圈诈骗。",
+            10: "无任何意义新闻"
         }
         
         '''
@@ -39,16 +40,30 @@ class NewsClassifier:
             10: "其他：不属于以上类别的新闻"
         }
         '''
-
+    def get_type_dict(self):
+        return self.type_dict
+        
     def create_prompt(self, news_text: str) -> str:
-        prompt = f"""你是一个新闻分类助手，请严格按照提供的分类标准对下列{self.news_num}条新闻进行分类，请直接返回数字，中间用_隔开，组合成一串字符串,直接返回答案。
+        if self.news_num>1:
+            prompt = f"""你是一个新闻分类助手，请严格按照提供的分类标准对下列{self.news_num}条新闻进行分类，请直接返回所属类别的数字序号，答案中间用_隔开，组合成一串字符串。
 
-        分类标准：
-        {json.dumps(self.type_dict, ensure_ascii=False, indent=2)}
+            分类标准：
+            {json.dumps(self.type_dict, ensure_ascii=False, indent=2)}
 
-        新闻文本：
-        {news_text}
-        """
+            新闻文本：
+            {news_text}
+            """
+        else:
+            prompt = f"""你是一个新闻分类助手，请严格按照提供的分类标准对下列{self.news_num}条新闻进行分类，请直接返回所属类别的数字序号
+
+            分类标准：
+            {json.dumps(self.type_dict, ensure_ascii=False, indent=2)}
+
+            新闻文本：
+            {news_text}
+            """
+
+            
         return prompt
 
     def set_news_num(self,news_num:int):
@@ -83,16 +98,15 @@ class NewsClassifier:
 
                     # 根据实际API返回格式调整
                     classification = json.loads(response_data)["choices"][0]["message"]["content"]
-                    print(json.loads(response_data)["choices"][0]["message"])
                     def extract_numbers2(text):
                         numbers = re.findall(r'\d', text)
                         return numbers
-                    
-                    for c in re.split(r'_',classification):
-                        result.append(int(c.strip()))
-                    
-                    #result = extract_numbers2(classification)
-                    print(result)
+                    if self.news_num>1:
+                        for c in re.split(r'_',classification):
+                            result.append(int(c.strip()))
+                    else:
+                        result = extract_numbers2(classification)
+                        #print("result:", result)
 
                     try:
                         result_num = len(result)
@@ -149,7 +163,7 @@ def main():
     classifier = NewsClassifier(api_key)
     data_path="../../data_process/XXX_0.csv"
     df = pd.read_csv(data_path)
-    batch_size=4
+    batch_size=5
 
     for i in range(0, len(df), batch_size):
         batch = df.iloc[i:i + batch_size]
@@ -209,3 +223,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    

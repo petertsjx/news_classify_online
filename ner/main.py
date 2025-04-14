@@ -28,7 +28,7 @@ def save_json(data, file_path):
     except Exception as e:
         print(f"发生错误: {e}")
 
-def main(): 
+def extract_sample_news_entities(): 
     custom_recognizer = CustomEntityRecognizer()
     data_path = "data.json"
     data= read_json(data_path)
@@ -36,19 +36,19 @@ def main():
 
     type_constrain={'PERSON','GPE','DATE','ORG','LAW','LOC'}
     new_envents=[]
-    for event in tqdm(events):
+    for event in tqdm(events[0:1500]):
         entity_dict={}
         for sample_news in event["sample_news"]:
             sample_news_entities=custom_recognizer.prediction(sample_news['title'])
             for entity in sample_news_entities:
-                if entity['text'] not in entity_dict and len(entity['text'])>1 and entity['type'] in type_constrain:
+                if entity['text'] not in entity_dict and len(entity['text'])>1:
                     entity_dict[entity['text']]=entity['type']
         
         event["sample_news_entities_summary"] = entity_dict
         new_envents.append(event)
     data["data"]["data"]["events"]=new_envents 
 
-    file_path="new_data.json"
+    file_path="new_data_1.json"
     save_json(data,file_path)
         
 
@@ -60,7 +60,22 @@ def main():
     #custom_recognizer = CustomEntityRecognizer()
     #custom_recognizer.prediction(text)
 
-main()
+def merge_json():
+    data1_path="new_data.json"
+    data2_path="new_data_1.json"
+    data1= read_json(data1_path)
+    data2= read_json(data2_path)
+    events1 = data1["data"]["data"]["events"]
+    events2 = data2["data"]["data"]["events"]
+
+    events1.extend(events2)
+    data1["data"]["data"]["events"]=events1
+    file_path="data_sampled_entities.json"
+    save_json(data1,file_path)
+    return 
+
+#merge_json()
+extract_sample_news_entities()
 
 
 

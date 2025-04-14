@@ -2,7 +2,7 @@ from utils import process_full_test_data,cut_df
 import pandas as pd
 data_path = "../data/full_test_update.csv"
 df=process_full_test_data(data_path)[['id','merged_text']]
-cut_df(df,10)
+cut_df(df,5)
 
 '''
 data_path = "XXX_0.csv"
