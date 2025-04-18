@@ -11,11 +11,11 @@ def classify_text(text):
     # 这里是示例分类逻辑
     classifier.set_news_num(1)
     result = classifier.classify_news(text)
-    print(result)
-    if result['category'] == 1:
+    print("result:" ,result)
+    if result['category'] == 1 and result['result'] !=[]:
         return result['result'][0]
     else:
-        return "-1"
+        return -1
 
 @app.route('/api/classify', methods=['POST'])
 def classify():
